@@ -8,5 +8,6 @@
         public static string UnknownErrorWhenGameAdded = "Oyun eklenirken bilinmeyen bir hata ile karşılaşıldı.";
         public static string UnknownErrorWhenGameDeleted = "Oyun silinirken bilinmeyen bir hata ile karşılaşıldı.";
         public static string UpdatedGameNameCanNotBeSameWithOld = "Güncellenen oyun adı eskisi ile aynı olamaz.";
+        public static string UnknownErrorWhenImageUpload = "Oyun resmi eklenirken bilinmeyen bir hata ile karşılaşıldı.";
     }
 }

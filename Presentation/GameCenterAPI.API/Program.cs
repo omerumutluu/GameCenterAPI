@@ -1,10 +1,11 @@
 using GameCenterAPI.API.Extensions;
 using GameCenterAPI.Application;
 using GameCenterAPI.Application.Features.Auth.Validations;
-using GameCenterAPI.Domain.Identity;
+using GameCenterAPI.Domain.Entities.Identity;
 using GameCenterAPI.Infrastructure;
 using GameCenterAPI.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -33,10 +34,16 @@ builder.Services.AddCors(opt =>
 builder.Services
     .AddIdentity<AppUser, AppRole>()
     .AddErrorDescriber<CustomIdentityErrorDescriber>()
-    .AddMongoDbStores<AppUser, AppRole, string>(builder.Configuration.GetConnectionString("MongoDb"), "game-center-db");
-    
+    .AddMongoDbStores<AppUser, AppRole, string>(builder.Configuration.GetConnectionString("MongoDb"), "game-center-db")
+    .AddDefaultTokenProviders();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
     .AddJwtBearer(opt =>
     {
         opt.TokenValidationParameters = new TokenValidationParameters
@@ -48,7 +55,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
-            ClockSkew = TimeSpan.Zero
+            ClockSkew = TimeSpan.Zero,
+            LifetimeValidator = (notBefore, expires, securityToken, validationParameters) => expires != null ? expires > DateTime.UtcNow : false
         };
     });
 

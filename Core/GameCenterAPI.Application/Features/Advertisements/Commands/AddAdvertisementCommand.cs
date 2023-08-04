@@ -4,13 +4,11 @@ using GameCenterAPI.Application.Exceptions;
 using GameCenterAPI.Application.Features.Advertisements.Validations;
 using GameCenterAPI.Application.Repositories.Advertisements;
 using GameCenterAPI.Application.Repositories.Games;
-using GameCenterAPI.Application.Repositories.Users;
 using GameCenterAPI.Domain.Entities;
-using GameCenterAPI.Domain.Identity;
+using GameCenterAPI.Domain.Entities.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using System.Xml;
 
 namespace GameCenterAPI.Application.Features.Advertisements.Commands
 {

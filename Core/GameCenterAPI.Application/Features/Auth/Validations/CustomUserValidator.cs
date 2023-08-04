@@ -1,4 +1,4 @@
-﻿using GameCenterAPI.Domain.Identity;
+﻿using GameCenterAPI.Domain.Entities.Identity;
 using Microsoft.AspNetCore.Identity;
 
 namespace GameCenterAPI.Application.Features.Auth.Validations

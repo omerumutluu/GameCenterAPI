@@ -1,6 +1,8 @@
-﻿using GameCenterAPI.Application.Abstraction.Token;
+﻿using GameCenterAPI.Application.Abstraction.Services;
+using GameCenterAPI.Application.Abstraction.Token;
 using GameCenterAPI.Application.DTOs;
-using GameCenterAPI.Domain.Identity;
+using GameCenterAPI.Application.DTOs.User;
+using GameCenterAPI.Domain.Entities.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 
@@ -14,58 +16,24 @@ namespace GameCenterAPI.Application.Features.Auth.Commands
 
     public class LoginCommandResponse
     {
-        public string AccessToken { get; set; }
-        public DateTime Expiration { get; set; }
-        public string RefreshToken { get; set; }
-        public string UserId { get; set; }
+        public Token Token { get; set; }
+        public LoginUserResponse User { get; set; }
     }
 
     public class LoginCommandHandler : IRequestHandler<LoginCommandRequest, LoginCommandResponse>
     {
-        readonly SignInManager<AppUser> _signInManager;
-        readonly UserManager<AppUser> _userManager;
-        readonly ITokenHandler _tokenHandler;
+        readonly IAuthService _authService;
 
-        public LoginCommandHandler(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, ITokenHandler tokenHandler)
+        public LoginCommandHandler(IAuthService authService)
         {
-            _signInManager = signInManager;
-            _userManager = userManager;
-            _tokenHandler = tokenHandler;
+            _authService = authService;
         }
 
         public async Task<LoginCommandResponse> Handle(LoginCommandRequest request, CancellationToken cancellationToken)
         {
-            AppUser? user = await _userManager.FindByEmailAsync(request.EmailOrUsername);
+            (LoginUserResponse user, Token token) result = await _authService.LoginAsync(request.EmailOrUsername, request.Password);
 
-            if (user == null)
-                user = await _userManager.FindByNameAsync(request.EmailOrUsername);
-
-            if (user == null)
-                throw new Exception(ErrorMessages.EmailOrUsernameFalse);
-
-            SignInResult result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, true);
-
-            if (!result.Succeeded)
-                throw new Exception(ErrorMessages.PasswordIsFalse);
-
-            Token token = _tokenHandler.CreateToken(user);
-
-            user.RefreshToken = token.RefreshToken;
-            user.RefreshTokenExpiration = token.Expiration.AddMinutes(1);
-
-            IdentityResult updateResult = await _userManager.UpdateAsync(user);
-
-            if (updateResult.Succeeded)
-                return new()
-                {
-                    AccessToken =
-                    token.AccessToken,
-                    Expiration = token.Expiration,
-                    RefreshToken = token.RefreshToken,
-                    UserId = user.Id
-                };
-
-            throw new Exception(ErrorMessages.UnknownErrorWhenUserLogin);
+            return new() { Token = result.token, User = result.user };
         }
     }
 }

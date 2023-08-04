@@ -1,11 +1,7 @@
 ﻿using GameCenterAPI.API.Controllers.Base;
-using GameCenterAPI.Application.Abstraction.Token;
-using GameCenterAPI.Application.Exceptions;
 using GameCenterAPI.Application.Features.Auth.Commands;
-using GameCenterAPI.Domain.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GameCenterAPI.API.Controllers
@@ -33,5 +29,41 @@ namespace GameCenterAPI.API.Controllers
             RegisterCommandResponse response = await Mediator.Send(request);
             return Ok(response);
         }
+
+        [HttpPost("refresh-token-login")]
+        public async Task<IActionResult> RefreshTokenLogin(RefreshTokenLoginCommandRequest request)
+        {
+            RefreshTokenLoginCommandResponse response = await Mediator.Send(request);
+            return Ok(response);
+        }
+
+        [HttpPost("password-reset")]
+        public async Task<IActionResult> PasswordReset([FromBody] PasswordResetCommandRequest request)
+        {
+            PasswordResetCommandResponse response = await Mediator.Send(request);
+            return Ok(response);
+        }
+
+        [HttpPost("verify-reset-token")]
+        public async Task<IActionResult> VerifyResetToken(VerifyResetTokenCommandRequest request)
+        {
+            VerifyResetTokenCommandResponse response = await Mediator.Send(request);
+            return Ok(response);
+        }
+
+        [HttpPost("update-password")]
+        public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordCommandRequest request)
+        {
+            UpdatePasswordCommandResponse response = await Mediator.Send(request);
+            return Ok(response);
+        }
+
+        [HttpPost("verify-email-confirm-token")]
+        public async Task<IActionResult> VerifyEmailConfirmToken()
+        {
+
+            return Ok();
+        }
+
     }
 }

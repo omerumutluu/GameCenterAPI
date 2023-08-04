@@ -1,4 +1,4 @@
-﻿using GameCenterAPI.Domain.Identity;
+﻿using GameCenterAPI.Domain.Entities.Identity;
 
 namespace GameCenterAPI.Application.Abstraction.Token
 {

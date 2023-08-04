@@ -1,5 +1,5 @@
 ﻿using GameCenterAPI.Domain.Entities.Base;
-using GameCenterAPI.Domain.Identity;
+using GameCenterAPI.Domain.Entities.Identity;
 
 namespace GameCenterAPI.Domain.Entities
 {

@@ -42,6 +42,7 @@ namespace GameCenterAPI.API.Extensions
                         }
                         else
                         {
+                            Console.WriteLine("buraya girmisiz abi");
                             await context.Response.WriteAsync(JsonSerializer.Serialize(new
                             {
                                 Title = "Hata Alındı",

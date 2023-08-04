@@ -1,9 +1,8 @@
 ﻿using FluentValidation.Results;
+using GameCenterAPI.Application.Abstraction.Services;
 using GameCenterAPI.Application.Exceptions;
 using GameCenterAPI.Application.Features.Auth.Validations;
-using GameCenterAPI.Application.Repositories.Users;
-using GameCenterAPI.Domain.Entities;
-using GameCenterAPI.Domain.Identity;
+using GameCenterAPI.Domain.Entities.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 
@@ -21,36 +20,21 @@ namespace GameCenterAPI.Application.Features.Auth.Commands
 
     public class RegisterCommandResponse
     {
-        public string Id { get; set; }
-        public string Username { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Email { get; set; }
-        public string PhoneNumber { get; set; }
-        public DateTime CreatedDate { get; set; }
+        public bool IsSucceeded { get; set; }
     }
 
     public class RegisterCommandRequestHandler : IRequestHandler<RegisterCommandRequest, RegisterCommandResponse>
     {
-        readonly UserManager<AppUser> _userManager;
+        readonly IAuthService _authService;
 
-        public RegisterCommandRequestHandler(UserManager<AppUser> userManager)
+        public RegisterCommandRequestHandler(IAuthService authService)
         {
-            _userManager = userManager;
+            _authService = authService;
         }
 
 
         public async Task<RegisterCommandResponse> Handle(RegisterCommandRequest request, CancellationToken cancellationToken)
         {
-            AppUser? user = await _userManager.FindByEmailAsync(request.Email);
-            if (user != null)
-                throw new Exception(ErrorMessages.DuplicateEmail);
-
-            user = await _userManager.FindByNameAsync(request.Username);
-            if (user != null)
-                throw new Exception(ErrorMessages.DuplicateUserName);
-
-
             RegisterCommandRequestValidator validator = new();
             ValidationResult validationResult = validator.Validate(request);
 
@@ -64,35 +48,20 @@ namespace GameCenterAPI.Application.Features.Auth.Commands
                 throw new ValidationException(ErrorMessages.ValidationFailed, errors);
             }
 
-            user = new()
+            bool result = await _authService.RegisterAsync(new()
             {
                 Email = request.Email,
-                UserName = request.Username,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
+                Password = request.Password,
                 PhoneNumber = request.PhoneNumber,
-                IsEmailConfirmed = false,
-                IsPhoneNumberConfirmed = false
-            };
+                Username = request.Username
+            });
 
-            IdentityResult result = await _userManager.CreateAsync(user, request.Password);
-
-            if (!result.Succeeded)
+            if (!result)
                 throw new Exception(ErrorMessages.UnknownErrorWhenUserRegister);
 
-
-            RegisterCommandResponse response = new()
-            {
-                Id = user.Id,
-                Email = user.Email,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                PhoneNumber = user.PhoneNumber,
-                Username = user.PhoneNumber,
-                CreatedDate = user.CreatedAt
-            };
-
-            return response;
+            return new() { IsSucceeded = result };
         }
     }
 }

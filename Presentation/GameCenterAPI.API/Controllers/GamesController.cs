@@ -1,7 +1,13 @@
 ﻿using GameCenterAPI.API.Controllers.Base;
+using GameCenterAPI.Application.Abstraction.Services;
+using GameCenterAPI.Application.Abstraction.Storage;
+using GameCenterAPI.Application.Consts;
+using GameCenterAPI.Application.CustomAttributes;
+using GameCenterAPI.Application.Enums;
 using GameCenterAPI.Application.Features.Games.Commands;
 using GameCenterAPI.Application.Features.Games.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -11,39 +17,55 @@ namespace GameCenterAPI.API.Controllers
     [ApiController]
     public class GamesController : BaseController
     {
-        public GamesController(IMediator mediator) : base(mediator)
+        readonly IAzureStorage _azurStorage;
+        public GamesController(IMediator mediator, IAzureStorage azurStorage) : base(mediator)
         {
+            _azurStorage = azurStorage;
+        }
+
+        //public GamesController(IMediator mediator) : base(mediator)
+        //{
+        //}
+
+        [HttpPost("deneme")]
+        public async Task<IActionResult> get()
+        {
+            IFormFileCollection deneme = Request.Form.Files;
+            var result = await _azurStorage.UploadAsync("game-images", deneme);
+            Console.WriteLine(result.Select(f => f.containerName).ToString());
+            Console.WriteLine(result.Select(f => f.fileName).ToString());
+            return Ok();
         }
 
         [HttpGet]
+        [AuthorizeDefinition(Menu = AuthorizeDefinitionConstants.Games, ActionType = ActionType.Reading, Definition = "Get Games")]
         public async Task<IActionResult> Get()
         {
-            var claimsIdentity = this.User.Identity as ClaimsIdentity;
-            Console.WriteLine("user=>", claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             var request = new GetAllGamesQueryRequest();
             GetAllGamesQueryResponse response = await Mediator.Send(request);
             return Ok(response);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(string id)
+        [AuthorizeDefinition(Menu = AuthorizeDefinitionConstants.Games, ActionType = ActionType.Reading, Definition = "Get Game By GameId")]
+        public async Task<IActionResult> GetById(GetByIdGameQueryRequest request)
         {
-            var request = new GetByIdGameQueryRequest();
-            request.Id = id;
-
             GetByIdGameQueryResponse response = await Mediator.Send(request);
 
             return Ok(response);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] AddGameCommandRequest request)
+        [AuthorizeDefinition(Menu = AuthorizeDefinitionConstants.Games, ActionType = ActionType.Writing, Definition = "Add Game")]
+        public async Task<IActionResult> Post([FromQuery] AddGameCommandRequest request)
         {
+            request.Files = Request.Form.Files;
             AddGameCommandResponse response = await Mediator.Send(request);
             return Created("Game", response);
         }
 
         [HttpPut]
+        [AuthorizeDefinition(Menu = AuthorizeDefinitionConstants.Games, ActionType = ActionType.Updating, Definition = "Update Game")]
         public async Task<IActionResult> Put([FromBody] UpdateGameCommandRequest request)
         {
             UpdateGameCommandResponse response = await Mediator.Send(request);
@@ -51,6 +73,7 @@ namespace GameCenterAPI.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [AuthorizeDefinition(Menu = AuthorizeDefinitionConstants.Games, ActionType = ActionType.Deleting, Definition = "Delete Game")]
         public async Task<IActionResult> Delete(string id)
         {
             DeleteGameCommandRequest request = new() { Id = id };

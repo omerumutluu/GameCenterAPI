@@ -15,7 +15,7 @@ namespace GameCenterAPI.Persistence.Repositories
         }
         public IMongoCollection<T> Collection => new MongoClient(_configuration.GetConnectionString("MongoDb")).GetDatabase("game-center-db").GetCollection<T>(typeof(T).Name.ToLowerInvariant() + "s");
 
-        public IQueryable<T> GetAll(Expression<Func<T, bool>> predicate = null)
+        public IQueryable<T> GetAll(Expression<Func<T, bool>>? predicate = null)
             => predicate != null
                 ? Collection.AsQueryable().Where(predicate)
                 : Collection.AsQueryable();

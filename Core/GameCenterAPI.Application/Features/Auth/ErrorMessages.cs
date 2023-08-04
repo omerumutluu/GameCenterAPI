@@ -30,5 +30,11 @@
         public static string PasswordRequiresDigit = "Parola en az bir rakam içermelidir.";
         public static string PasswordRequiresLower = "Parola en az bir küçük harf içermelidir";
         public static string PasswordRequiresUpper = "Parola en az bir büyük harf içermelidir";
+        public static string UserCanNotFoundByRefreshToken = "Bu refresh token' a sahip bir kullanıcı bulunmamaktadır.";
+        public static string RefreshTokenExpired = "Refresh token kullanım süresi bitmiştir.";
+        public static string UnknownErrorWhenRefreshTokenUpdate = "Refresh token güncellenirken bilinmeyen bir hatayla karşılaşıldı.";
+        public static string UserCanNotFoundById = "Bu id ile eşleşen bir kullanıcı bulunamadı";
+        public static string UnknownErrorWhenMailConfirm = "Mail doğrulama sırasında bilinmeyen bir hata ile karşılaşıldı.";
+        public static string InvalidEmailConfirmToken = "Hatalı email token.";
     }
 }

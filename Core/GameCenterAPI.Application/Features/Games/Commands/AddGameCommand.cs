@@ -1,13 +1,15 @@
-﻿using GameCenterAPI.Application.Repositories.Games;
+﻿using GameCenterAPI.Application.Abstraction.Storage;
+using GameCenterAPI.Application.Repositories.Games;
 using GameCenterAPI.Domain.Entities;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 
 namespace GameCenterAPI.Application.Features.Games.Commands
 {
     public class AddGameCommandRequest : IRequest<AddGameCommandResponse>
     {
         public string Name { get; set; }
-        public string Image { get; set; }
+        public IFormFileCollection? Files { get; set; }
     }
 
     public class AddGameCommandResponse
@@ -19,11 +21,13 @@ namespace GameCenterAPI.Application.Features.Games.Commands
     {
         readonly IGameWriteRepository _gameWriteRepository;
         readonly IGameReadRepository _gameReadRepository;
+        readonly IAzureStorage _azureStorage;
 
-        public AddGameCommandHandler(IGameReadRepository gameReadRepository, IGameWriteRepository gameWriteRepository)
+        public AddGameCommandHandler(IGameReadRepository gameReadRepository, IGameWriteRepository gameWriteRepository, IAzureStorage azureStorage)
         {
             _gameReadRepository = gameReadRepository;
             _gameWriteRepository = gameWriteRepository;
+            _azureStorage = azureStorage;
         }
 
         public async Task<AddGameCommandResponse> Handle(AddGameCommandRequest request, CancellationToken cancellationToken)
@@ -33,13 +37,19 @@ namespace GameCenterAPI.Application.Features.Games.Commands
             if (game != null)
                 throw new Exception(ErrorMessages.GameNameAlreadyExist);
 
-            Game? addedGame = await _gameWriteRepository.AddAsync(new() { Name = request.Name, Image = request.Image });
+            List<(string fileName, string containerName)> result = await _azureStorage.UploadAsync("game-images", request.Files);
+
+            if (result[0].fileName == "" && result[0].containerName == "")
+                throw new Exception(ErrorMessages.UnknownErrorWhenImageUpload);
+
+            string fileName = $"/{result[0].containerName}/{result[0].fileName}";
+
+            Game? addedGame = await _gameWriteRepository.AddAsync(new() { Name = request.Name, Image = fileName });
 
             if (addedGame == null)
                 throw new Exception(ErrorMessages.UnknownErrorWhenGameAdded);
 
             return new() { Game = addedGame };
-
         }
     }
 }

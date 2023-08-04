@@ -1,5 +1,5 @@
 ﻿using GameCenterAPI.Application.Abstraction.Token;
-using GameCenterAPI.Domain.Identity;
+using GameCenterAPI.Domain.Entities.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -61,9 +61,9 @@ namespace GameCenterAPI.Infrastructure.Services.Token
             claims.Add(new(ClaimTypes.Email, user.Email));
             claims.Add(new(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"));
 
-            if (user.OperationClaims != null)
-                foreach (var operationClaim in user.OperationClaims)
-                    claims.Add(new(ClaimTypes.Role, operationClaim));
+            //if (user.OperationClaims != null)
+            //    foreach (var operationClaim in user.OperationClaims)
+            //        claims.Add(new(ClaimTypes.Role, operationClaim));
 
 
             return claims;
